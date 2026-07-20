@@ -1,0 +1,13 @@
+[
+  {
+    "IpProtocol": "tcp",
+    "FromPort": 8084,
+    "ToPort": 8084,
+    "UserIdGroupPairs": [
+      {
+        "GroupId": "sg-0887dc78345608105",
+        "Description": "ALB to Matchmaking"
+      }
+    ]
+  }
+]

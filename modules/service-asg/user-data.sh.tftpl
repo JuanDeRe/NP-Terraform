@@ -1,0 +1,67 @@
+#!/bin/bash
+set -euxo pipefail
+
+exec > >(tee /var/log/nightwatch-bootstrap.log | logger -t user-data -s 2>/dev/console) 2>&1
+
+dnf update -y
+dnf install -y docker awscli
+
+systemctl enable docker
+systemctl start docker
+
+REGION="us-east-1"
+
+TOKEN=$(curl -X PUT \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" \
+  http://169.254.169.254/latest/api/token)
+
+INSTANCE_ID=$(curl \
+  -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/instance-id)
+
+PRIVATE_IP=$(curl \
+  -H "X-aws-ec2-metadata-token: $TOKEN" \
+  http://169.254.169.254/latest/meta-data/local-ipv4)
+
+REGISTRY=$(echo "${image_uri}" | cut -d/ -f1)
+
+aws ecr get-login-password \
+  --region "$REGION" \
+  | docker login \
+      --username AWS \
+      --password-stdin "$REGISTRY"
+
+cat > /etc/nightwatch.env <<'ENVFILE'
+ASPNETCORE_URLS=http://+:8080
+ASPNETCORE_ENVIRONMENT=Production
+AWS_REGION=us-east-1
+AWS_DEFAULT_REGION=us-east-1
+AWS_ACCOUNT_ID_ENDPOINT_MODE=disabled
+%{ for key, value in environment_variables ~}
+${key}=${value}
+%{ endfor ~}
+ENVFILE
+
+%{ if enable_game_instance_identity ~}
+cat >> /etc/nightwatch.env <<ENVFILE
+GameService__InstanceId=game-service-$INSTANCE_ID
+GameService__InternalUrl=http://$PRIVATE_IP:8080
+ENVFILE
+%{ endif ~}
+
+%{ if enable_gateway_instance_identity ~}
+cat >> /etc/nightwatch.env <<ENVFILE
+Redis__ConsumerId=gateway-$INSTANCE_ID
+ENVFILE
+%{ endif ~}
+
+docker pull "${image_uri}"
+
+docker rm -f "${service_name}" || true
+
+docker run -d \
+  --name "${service_name}" \
+  --restart unless-stopped \
+  --env-file /etc/nightwatch.env \
+  -p 8080:8080 \
+  "${image_uri}"

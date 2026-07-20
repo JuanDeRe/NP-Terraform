@@ -1,0 +1,8 @@
+aws_region                 = "us-east-1"
+environment                = "dev"
+project_name               = "nightwatch"
+instance_type              = "t3.micro"
+game_service_max_matches   = 20
+jwt_key                     = "replace-with-a-long-random-secret"
+redis_node_type             = "cache.t4g.micro"
+iam_instance_profile_name   = "LabInstanceProfile"
