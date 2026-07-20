@@ -93,6 +93,8 @@ resource "aws_launch_template" "service" {
         environment_variables            = var.environment_variables
         enable_game_instance_identity    = var.enable_game_instance_identity
         enable_gateway_instance_identity = var.enable_gateway_instance_identity
+        aws_region                       = var.aws_region
+        cloudwatch_log_group_name        = var.cloudwatch_log_group_name
       }
     )
   )
@@ -183,6 +185,8 @@ resource "aws_autoscaling_policy" "cpu" {
   policy_type = "TargetTrackingScaling"
 
   target_tracking_configuration {
+    disable_scale_in = var.disable_scale_in
+
     predefined_metric_specification {
       predefined_metric_type = "ASGAverageCPUUtilization"
     }

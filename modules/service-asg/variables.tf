@@ -79,3 +79,19 @@ variable "additional_alb_ports" {
   type        = set(number)
   default     = []
 }
+
+variable "disable_scale_in" {
+  description = "Prevents the target tracking policy from automatically reducing capacity."
+  type        = bool
+  default     = false
+}
+
+variable "aws_region" {
+  description = "AWS Region where the service is deployed."
+  type        = string
+}
+
+variable "cloudwatch_log_group_name" {
+  description = "CloudWatch Log Group used by the Docker awslogs driver."
+  type        = string
+}

@@ -63,5 +63,8 @@ output "autoscaling_groups" {
     matchmaking = module.matchmaking_service.autoscaling_group_name
     gateway     = module.realtime_gateway.autoscaling_group_name
   }
-
+}
+output "cloudwatch_log_groups" {
+  description = "CloudWatch Log Groups for Nightwatch services."
+  value       = module.observability.log_group_names
 }

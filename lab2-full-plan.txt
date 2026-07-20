@@ -1,0 +1,1824 @@
+﻿
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+ <= read (data resources)
+
+Terraform will perform the following actions:
+
+  # module.auth_service.aws_autoscaling_group.service will be created
+  + resource "aws_autoscaling_group" "service" {
+      + arn                              = (known after apply)
+      + availability_zones               = (known after apply)
+      + default_cooldown                 = (known after apply)
+      + desired_capacity                 = 1
+      + force_delete                     = false
+      + force_delete_warm_pool           = false
+      + health_check_grace_period        = 300
+      + health_check_type                = "ELB"
+      + id                               = (known after apply)
+      + ignore_failed_scaling_activities = false
+      + load_balancers                   = (known after apply)
+      + max_size                         = 2
+      + metrics_granularity              = "1Minute"
+      + min_size                         = 1
+      + name                             = (known after apply)
+      + name_prefix                      = "nightwatch-dev-auth-service-"
+      + predicted_capacity               = (known after apply)
+      + protect_from_scale_in            = false
+      + region                           = "us-east-1"
+      + service_linked_role_arn          = (known after apply)
+      + target_group_arns                = (known after apply)
+      + vpc_zone_identifier              = (known after apply)
+      + wait_for_capacity_timeout        = "10m"
+      + warm_pool_size                   = (known after apply)
+
+      + availability_zone_distribution (known after apply)
+
+      + capacity_reservation_specification (known after apply)
+
+      + instance_refresh {
+          + strategy = "Rolling"
+
+          + preferences {
+              + instance_warmup              = "180"
+              + max_healthy_percentage       = 100
+              + min_healthy_percentage       = 50
+              + scale_in_protected_instances = "Ignore"
+              + skip_matching                = false
+              + standby_instances            = "Ignore"
+            }
+        }
+
+      + launch_template {
+          + id      = (known after apply)
+          + name    = (known after apply)
+          + version = "$Latest"
+        }
+
+      + mixed_instances_policy (known after apply)
+
+      + tag {
+          + key                 = "Name"
+          + propagate_at_launch = true
+          + value               = "nightwatch-dev-auth-service"
+        }
+
+      + traffic_source (known after apply)
+    }
+
+  # module.auth_service.aws_autoscaling_policy.cpu[0] will be created
+  + resource "aws_autoscaling_policy" "cpu" {
+      + arn                     = (known after apply)
+      + autoscaling_group_name  = (known after apply)
+      + enabled                 = true
+      + id                      = (known after apply)
+      + metric_aggregation_type = (known after apply)
+      + name                    = "nightwatch-dev-auth-service-cpu"
+      + policy_type             = "TargetTrackingScaling"
+      + region                  = "us-east-1"
+
+      + target_tracking_configuration {
+          + disable_scale_in = false
+          + target_value     = 50
+
+          + predefined_metric_specification {
+              + predefined_metric_type = "ASGAverageCPUUtilization"
+            }
+        }
+    }
+
+  # module.auth_service.aws_launch_template.service will be created
+  + resource "aws_launch_template" "service" {
+      + arn                    = (known after apply)
+      + default_version        = (known after apply)
+      + id                     = (known after apply)
+      + image_id               = (sensitive value)
+      + instance_type          = "t3.micro"
+      + latest_version         = (known after apply)
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-auth-service-"
+      + region                 = "us-east-1"
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + user_data              = (sensitive value)
+      + vpc_security_group_ids = (known after apply)
+
+      + block_device_mappings {
+          + device_name = "/dev/xvda"
+
+          + ebs {
+              + delete_on_termination      = "true"
+              + encrypted                  = "true"
+              + iops                       = (known after apply)
+              + throughput                 = (known after apply)
+              + volume_initialization_rate = (known after apply)
+              + volume_size                = 12
+              + volume_type                = "gp3"
+            }
+        }
+
+      + iam_instance_profile {
+          + name = "LabInstanceProfile"
+        }
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_protocol_ipv6          = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = (known after apply)
+        }
+
+      + tag_specifications {
+          + resource_type = "instance"
+          + tags          = {
+              + "Name"    = "nightwatch-dev-auth-service"
+              + "Service" = "auth-service"
+            }
+        }
+    }
+
+  # module.auth_service.aws_security_group.service will be created
+  + resource "aws_security_group" "service" {
+      + arn                    = (known after apply)
+      + description            = "Security group for auth-service instances."
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow outbound traffic"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "10.20.0.0/16",
+                ]
+              + description      = "Internal HTTP between Nightwatch services"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8080
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "HTTP from Application Load Balancer"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8080
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-auth-service-"
+      + owner_id               = (known after apply)
+      + region                 = "us-east-1"
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "nightwatch-dev-auth-service-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-auth-service-sg"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.dynamodb.aws_dynamodb_table.users will be created
+  + resource "aws_dynamodb_table" "users" {
+      + arn                         = (known after apply)
+      + billing_mode                = "PAY_PER_REQUEST"
+      + deletion_protection_enabled = false
+      + hash_key                    = "Username"
+      + id                          = (known after apply)
+      + name                        = "NP-Users"
+      + read_capacity               = (known after apply)
+      + region                      = "us-east-1"
+      + stream_arn                  = (known after apply)
+      + stream_label                = (known after apply)
+      + stream_view_type            = (known after apply)
+      + tags                        = {
+          + "Name" = "nightwatch-dev-users"
+        }
+      + tags_all                    = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-users"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + write_capacity              = (known after apply)
+
+      + attribute {
+          + name = "Username"
+          + type = "S"
+        }
+
+      + global_secondary_index (known after apply)
+
+      + global_table_witness (known after apply)
+
+      + point_in_time_recovery {
+          + enabled                 = false
+          + recovery_period_in_days = (known after apply)
+        }
+
+      + server_side_encryption (known after apply)
+
+      + ttl (known after apply)
+
+      + warm_throughput (known after apply)
+    }
+
+  # module.game_service.aws_autoscaling_group.service will be created
+  + resource "aws_autoscaling_group" "service" {
+      + arn                              = (known after apply)
+      + availability_zones               = (known after apply)
+      + default_cooldown                 = (known after apply)
+      + desired_capacity                 = 1
+      + force_delete                     = false
+      + force_delete_warm_pool           = false
+      + health_check_grace_period        = 300
+      + health_check_type                = "ELB"
+      + id                               = (known after apply)
+      + ignore_failed_scaling_activities = false
+      + load_balancers                   = (known after apply)
+      + max_size                         = 3
+      + metrics_granularity              = "1Minute"
+      + min_size                         = 1
+      + name                             = (known after apply)
+      + name_prefix                      = "nightwatch-dev-game-service-"
+      + predicted_capacity               = (known after apply)
+      + protect_from_scale_in            = false
+      + region                           = "us-east-1"
+      + service_linked_role_arn          = (known after apply)
+      + target_group_arns                = (known after apply)
+      + vpc_zone_identifier              = (known after apply)
+      + wait_for_capacity_timeout        = "10m"
+      + warm_pool_size                   = (known after apply)
+
+      + availability_zone_distribution (known after apply)
+
+      + capacity_reservation_specification (known after apply)
+
+      + instance_refresh {
+          + strategy = "Rolling"
+
+          + preferences {
+              + instance_warmup              = "180"
+              + max_healthy_percentage       = 100
+              + min_healthy_percentage       = 50
+              + scale_in_protected_instances = "Ignore"
+              + skip_matching                = false
+              + standby_instances            = "Ignore"
+            }
+        }
+
+      + launch_template {
+          + id      = (known after apply)
+          + name    = (known after apply)
+          + version = "$Latest"
+        }
+
+      + mixed_instances_policy (known after apply)
+
+      + tag {
+          + key                 = "Name"
+          + propagate_at_launch = true
+          + value               = "nightwatch-dev-game-service"
+        }
+
+      + traffic_source (known after apply)
+    }
+
+  # module.game_service.aws_autoscaling_policy.cpu[0] will be created
+  + resource "aws_autoscaling_policy" "cpu" {
+      + arn                     = (known after apply)
+      + autoscaling_group_name  = (known after apply)
+      + enabled                 = true
+      + id                      = (known after apply)
+      + metric_aggregation_type = (known after apply)
+      + name                    = "nightwatch-dev-game-service-cpu"
+      + policy_type             = "TargetTrackingScaling"
+      + region                  = "us-east-1"
+
+      + target_tracking_configuration {
+          + disable_scale_in = true
+          + target_value     = 50
+
+          + predefined_metric_specification {
+              + predefined_metric_type = "ASGAverageCPUUtilization"
+            }
+        }
+    }
+
+  # module.game_service.aws_launch_template.service will be created
+  + resource "aws_launch_template" "service" {
+      + arn                    = (known after apply)
+      + default_version        = (known after apply)
+      + id                     = (known after apply)
+      + image_id               = (sensitive value)
+      + instance_type          = "t3.micro"
+      + latest_version         = (known after apply)
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-game-service-"
+      + region                 = "us-east-1"
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + user_data              = (sensitive value)
+      + vpc_security_group_ids = (known after apply)
+
+      + block_device_mappings {
+          + device_name = "/dev/xvda"
+
+          + ebs {
+              + delete_on_termination      = "true"
+              + encrypted                  = "true"
+              + iops                       = (known after apply)
+              + throughput                 = (known after apply)
+              + volume_initialization_rate = (known after apply)
+              + volume_size                = 12
+              + volume_type                = "gp3"
+            }
+        }
+
+      + iam_instance_profile {
+          + name = "LabInstanceProfile"
+        }
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_protocol_ipv6          = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = (known after apply)
+        }
+
+      + tag_specifications {
+          + resource_type = "instance"
+          + tags          = {
+              + "Name"    = "nightwatch-dev-game-service"
+              + "Service" = "game-service"
+            }
+        }
+    }
+
+  # module.game_service.aws_security_group.service will be created
+  + resource "aws_security_group" "service" {
+      + arn                    = (known after apply)
+      + description            = "Security group for game-service instances."
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow outbound traffic"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "10.20.0.0/16",
+                ]
+              + description      = "Internal HTTP between Nightwatch services"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8080
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "HTTP from Application Load Balancer"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8080
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-game-service-"
+      + owner_id               = (known after apply)
+      + region                 = "us-east-1"
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "nightwatch-dev-game-service-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-game-service-sg"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.load_balancer.aws_lb.main will be created
+  + resource "aws_lb" "main" {
+      + arn                                                          = (known after apply)
+      + arn_suffix                                                   = (known after apply)
+      + client_keep_alive                                            = 3600
+      + desync_mitigation_mode                                       = "defensive"
+      + dns_name                                                     = (known after apply)
+      + drop_invalid_header_fields                                   = false
+      + enable_deletion_protection                                   = false
+      + enable_http2                                                 = true
+      + enable_prefix_for_ipv6_source_nat                            = (known after apply)
+      + enable_tls_version_and_cipher_suite_headers                  = false
+      + enable_waf_fail_open                                         = false
+      + enable_xff_client_port                                       = false
+      + enable_zonal_shift                                           = false
+      + enforce_security_group_inbound_rules_on_private_link_traffic = (known after apply)
+      + id                                                           = (known after apply)
+      + idle_timeout                                                 = 120
+      + internal                                                     = false
+      + ip_address_type                                              = (known after apply)
+      + load_balancer_type                                           = "application"
+      + name                                                         = "nightwatch-dev-alb"
+      + name_prefix                                                  = (known after apply)
+      + preserve_host_header                                         = false
+      + region                                                       = "us-east-1"
+      + secondary_ips_auto_assigned_per_subnet                       = (known after apply)
+      + security_groups                                              = (known after apply)
+      + subnets                                                      = (known after apply)
+      + tags                                                         = {
+          + "Name" = "nightwatch-dev-alb"
+        }
+      + tags_all                                                     = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-alb"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                                                       = (known after apply)
+      + xff_header_processing_mode                                   = "append"
+      + zone_id                                                      = (known after apply)
+
+      + subnet_mapping (known after apply)
+    }
+
+  # module.load_balancer.aws_lb_listener.http will be created
+  + resource "aws_lb_listener" "http" {
+      + arn                                                                   = (known after apply)
+      + id                                                                    = (known after apply)
+      + load_balancer_arn                                                     = (known after apply)
+      + port                                                                  = 80
+      + protocol                                                              = "HTTP"
+      + region                                                                = "us-east-1"
+      + routing_http_request_x_amzn_mtls_clientcert_header_name               = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_issuer_header_name        = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_leaf_header_name          = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_serial_number_header_name = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_subject_header_name       = (known after apply)
+      + routing_http_request_x_amzn_mtls_clientcert_validity_header_name      = (known after apply)
+      + routing_http_request_x_amzn_tls_cipher_suite_header_name              = (known after apply)
+      + routing_http_request_x_amzn_tls_version_header_name                   = (known after apply)
+      + routing_http_response_access_control_allow_credentials_header_value   = (known after apply)
+      + routing_http_response_access_control_allow_headers_header_value       = (known after apply)
+      + routing_http_response_access_control_allow_methods_header_value       = (known after apply)
+      + routing_http_response_access_control_allow_origin_header_value        = (known after apply)
+      + routing_http_response_access_control_expose_headers_header_value      = (known after apply)
+      + routing_http_response_access_control_max_age_header_value             = (known after apply)
+      + routing_http_response_content_security_policy_header_value            = (known after apply)
+      + routing_http_response_server_enabled                                  = (known after apply)
+      + routing_http_response_strict_transport_security_header_value          = (known after apply)
+      + routing_http_response_x_content_type_options_header_value             = (known after apply)
+      + routing_http_response_x_frame_options_header_value                    = (known after apply)
+      + ssl_policy                                                            = (known after apply)
+      + tags_all                                                              = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + tcp_idle_timeout_seconds                                              = (known after apply)
+
+      + default_action {
+          + order = (known after apply)
+          + type  = "fixed-response"
+
+          + fixed_response {
+              + content_type = "application/json"
+              + message_body = jsonencode(
+                    {
+                      + message = "Nightwatch Protocol API"
+                    }
+                )
+              + status_code  = "200"
+            }
+        }
+
+      + mutual_authentication (known after apply)
+    }
+
+  # module.load_balancer.aws_lb_listener_rule.auth will be created
+  + resource "aws_lb_listener_rule" "auth" {
+      + arn          = (known after apply)
+      + id           = (known after apply)
+      + listener_arn = (known after apply)
+      + priority     = 10
+      + region       = "us-east-1"
+      + tags_all     = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+
+      + action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + condition {
+          + path_pattern {
+              + regex_values = []
+              + values       = [
+                  + "/auth",
+                  + "/auth/*",
+                ]
+            }
+        }
+    }
+
+  # module.load_balancer.aws_lb_listener_rule.game will be created
+  + resource "aws_lb_listener_rule" "game" {
+      + arn          = (known after apply)
+      + id           = (known after apply)
+      + listener_arn = (known after apply)
+      + priority     = 30
+      + region       = "us-east-1"
+      + tags_all     = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+
+      + action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + condition {
+          + path_pattern {
+              + regex_values = []
+              + values       = [
+                  + "/game",
+                  + "/game/*",
+                ]
+            }
+        }
+    }
+
+  # module.load_balancer.aws_lb_listener_rule.gateway will be created
+  + resource "aws_lb_listener_rule" "gateway" {
+      + arn          = (known after apply)
+      + id           = (known after apply)
+      + listener_arn = (known after apply)
+      + priority     = 40
+      + region       = "us-east-1"
+      + tags_all     = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+
+      + action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + condition {
+          + path_pattern {
+              + regex_values = []
+              + values       = [
+                  + "/game-ws",
+                  + "/game-ws/*",
+                ]
+            }
+        }
+    }
+
+  # module.load_balancer.aws_lb_listener_rule.matchmaking will be created
+  + resource "aws_lb_listener_rule" "matchmaking" {
+      + arn          = (known after apply)
+      + id           = (known after apply)
+      + listener_arn = (known after apply)
+      + priority     = 20
+      + region       = "us-east-1"
+      + tags_all     = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+
+      + action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + condition {
+          + path_pattern {
+              + regex_values = []
+              + values       = [
+                  + "/matchmaking",
+                  + "/matchmaking/*",
+                ]
+            }
+        }
+    }
+
+  # module.load_balancer.aws_lb_target_group.auth will be created
+  + resource "aws_lb_target_group" "auth" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancer_arns                 = (known after apply)
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_anomaly_mitigation  = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "nightwatch-dev-auth"
+      + name_prefix                        = (known after apply)
+      + port                               = 8080
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + region                             = "us-east-1"
+      + slow_start                         = 0
+      + tags_all                           = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + target_type                        = "instance"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 15
+          + matcher             = "200"
+          + path                = "/health"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 3
+        }
+
+      + stickiness (known after apply)
+
+      + target_failover (known after apply)
+
+      + target_group_health (known after apply)
+
+      + target_health_state (known after apply)
+    }
+
+  # module.load_balancer.aws_lb_target_group.game will be created
+  + resource "aws_lb_target_group" "game" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancer_arns                 = (known after apply)
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_anomaly_mitigation  = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "nightwatch-dev-game"
+      + name_prefix                        = (known after apply)
+      + port                               = 8080
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + region                             = "us-east-1"
+      + slow_start                         = 0
+      + tags_all                           = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + target_type                        = "instance"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 15
+          + matcher             = "200"
+          + path                = "/health"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 3
+        }
+
+      + stickiness (known after apply)
+
+      + target_failover (known after apply)
+
+      + target_group_health (known after apply)
+
+      + target_health_state (known after apply)
+    }
+
+  # module.load_balancer.aws_lb_target_group.gateway will be created
+  + resource "aws_lb_target_group" "gateway" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancer_arns                 = (known after apply)
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_anomaly_mitigation  = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "nightwatch-dev-gateway"
+      + name_prefix                        = (known after apply)
+      + port                               = 8080
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + region                             = "us-east-1"
+      + slow_start                         = 0
+      + tags_all                           = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + target_type                        = "instance"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 15
+          + matcher             = "200"
+          + path                = "/health"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 3
+        }
+
+      + stickiness {
+          + cookie_duration = 3600
+          + enabled         = true
+          + type            = "lb_cookie"
+        }
+
+      + target_failover (known after apply)
+
+      + target_group_health (known after apply)
+
+      + target_health_state (known after apply)
+    }
+
+  # module.load_balancer.aws_lb_target_group.matchmaking will be created
+  + resource "aws_lb_target_group" "matchmaking" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = (known after apply)
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + ip_address_type                    = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancer_arns                 = (known after apply)
+      + load_balancing_algorithm_type      = (known after apply)
+      + load_balancing_anomaly_mitigation  = (known after apply)
+      + load_balancing_cross_zone_enabled  = (known after apply)
+      + name                               = "nightwatch-dev-mm"
+      + name_prefix                        = (known after apply)
+      + port                               = 8080
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTP"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + region                             = "us-east-1"
+      + slow_start                         = 0
+      + tags_all                           = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + target_type                        = "instance"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 2
+          + interval            = 15
+          + matcher             = "200"
+          + path                = "/health"
+          + port                = "traffic-port"
+          + protocol            = "HTTP"
+          + timeout             = 5
+          + unhealthy_threshold = 3
+        }
+
+      + stickiness (known after apply)
+
+      + target_failover (known after apply)
+
+      + target_group_health (known after apply)
+
+      + target_health_state (known after apply)
+    }
+
+  # module.load_balancer.aws_security_group.alb will be created
+  + resource "aws_security_group" "alb" {
+      + arn                    = (known after apply)
+      + description            = "Public access to the Nightwatch Application Load Balancer."
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Traffic from ALB to application instances"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Public HTTP"
+              + from_port        = 80
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 80
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-alb-"
+      + owner_id               = (known after apply)
+      + region                 = "us-east-1"
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "nightwatch-dev-alb-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-alb-sg"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.matchmaking_service.aws_autoscaling_group.service will be created
+  + resource "aws_autoscaling_group" "service" {
+      + arn                              = (known after apply)
+      + availability_zones               = (known after apply)
+      + default_cooldown                 = (known after apply)
+      + desired_capacity                 = 1
+      + force_delete                     = false
+      + force_delete_warm_pool           = false
+      + health_check_grace_period        = 300
+      + health_check_type                = "ELB"
+      + id                               = (known after apply)
+      + ignore_failed_scaling_activities = false
+      + load_balancers                   = (known after apply)
+      + max_size                         = 2
+      + metrics_granularity              = "1Minute"
+      + min_size                         = 1
+      + name                             = (known after apply)
+      + name_prefix                      = "nightwatch-dev-matchmaking-service-"
+      + predicted_capacity               = (known after apply)
+      + protect_from_scale_in            = false
+      + region                           = "us-east-1"
+      + service_linked_role_arn          = (known after apply)
+      + target_group_arns                = (known after apply)
+      + vpc_zone_identifier              = (known after apply)
+      + wait_for_capacity_timeout        = "10m"
+      + warm_pool_size                   = (known after apply)
+
+      + availability_zone_distribution (known after apply)
+
+      + capacity_reservation_specification (known after apply)
+
+      + instance_refresh {
+          + strategy = "Rolling"
+
+          + preferences {
+              + instance_warmup              = "180"
+              + max_healthy_percentage       = 100
+              + min_healthy_percentage       = 50
+              + scale_in_protected_instances = "Ignore"
+              + skip_matching                = false
+              + standby_instances            = "Ignore"
+            }
+        }
+
+      + launch_template {
+          + id      = (known after apply)
+          + name    = (known after apply)
+          + version = "$Latest"
+        }
+
+      + mixed_instances_policy (known after apply)
+
+      + tag {
+          + key                 = "Name"
+          + propagate_at_launch = true
+          + value               = "nightwatch-dev-matchmaking-service"
+        }
+
+      + traffic_source (known after apply)
+    }
+
+  # module.matchmaking_service.aws_autoscaling_policy.cpu[0] will be created
+  + resource "aws_autoscaling_policy" "cpu" {
+      + arn                     = (known after apply)
+      + autoscaling_group_name  = (known after apply)
+      + enabled                 = true
+      + id                      = (known after apply)
+      + metric_aggregation_type = (known after apply)
+      + name                    = "nightwatch-dev-matchmaking-service-cpu"
+      + policy_type             = "TargetTrackingScaling"
+      + region                  = "us-east-1"
+
+      + target_tracking_configuration {
+          + disable_scale_in = false
+          + target_value     = 50
+
+          + predefined_metric_specification {
+              + predefined_metric_type = "ASGAverageCPUUtilization"
+            }
+        }
+    }
+
+  # module.matchmaking_service.aws_launch_template.service will be created
+  + resource "aws_launch_template" "service" {
+      + arn                    = (known after apply)
+      + default_version        = (known after apply)
+      + id                     = (known after apply)
+      + image_id               = (sensitive value)
+      + instance_type          = "t3.micro"
+      + latest_version         = (known after apply)
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-matchmaking-service-"
+      + region                 = "us-east-1"
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + user_data              = (sensitive value)
+      + vpc_security_group_ids = (known after apply)
+
+      + block_device_mappings {
+          + device_name = "/dev/xvda"
+
+          + ebs {
+              + delete_on_termination      = "true"
+              + encrypted                  = "true"
+              + iops                       = (known after apply)
+              + throughput                 = (known after apply)
+              + volume_initialization_rate = (known after apply)
+              + volume_size                = 12
+              + volume_type                = "gp3"
+            }
+        }
+
+      + iam_instance_profile {
+          + name = "LabInstanceProfile"
+        }
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_protocol_ipv6          = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = (known after apply)
+        }
+
+      + tag_specifications {
+          + resource_type = "instance"
+          + tags          = {
+              + "Name"    = "nightwatch-dev-matchmaking-service"
+              + "Service" = "matchmaking-service"
+            }
+        }
+    }
+
+  # module.matchmaking_service.aws_security_group.service will be created
+  + resource "aws_security_group" "service" {
+      + arn                    = (known after apply)
+      + description            = "Security group for matchmaking-service instances."
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow outbound traffic"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "10.20.0.0/16",
+                ]
+              + description      = "Internal HTTP between Nightwatch services"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8080
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "HTTP from Application Load Balancer"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8080
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-matchmaking-service-"
+      + owner_id               = (known after apply)
+      + region                 = "us-east-1"
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "nightwatch-dev-matchmaking-service-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-matchmaking-service-sg"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.network.aws_internet_gateway.main will be created
+  + resource "aws_internet_gateway" "main" {
+      + arn      = (known after apply)
+      + id       = (known after apply)
+      + owner_id = (known after apply)
+      + region   = "us-east-1"
+      + tags     = {
+          + "Name" = "nightwatch-dev-igw"
+        }
+      + tags_all = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-igw"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id   = (known after apply)
+    }
+
+  # module.network.aws_route_table.public will be created
+  + resource "aws_route_table" "public" {
+      + arn              = (known after apply)
+      + id               = (known after apply)
+      + owner_id         = (known after apply)
+      + propagating_vgws = (known after apply)
+      + region           = "us-east-1"
+      + route            = [
+          + {
+              + cidr_block                 = "0.0.0.0/0"
+              + gateway_id                 = (known after apply)
+                # (12 unchanged attributes hidden)
+            },
+        ]
+      + tags             = {
+          + "Name" = "nightwatch-dev-public-rt"
+        }
+      + tags_all         = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-public-rt"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id           = (known after apply)
+    }
+
+  # module.network.aws_route_table_association.public[0] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + region         = "us-east-1"
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # module.network.aws_route_table_association.public[1] will be created
+  + resource "aws_route_table_association" "public" {
+      + id             = (known after apply)
+      + region         = "us-east-1"
+      + route_table_id = (known after apply)
+      + subnet_id      = (known after apply)
+    }
+
+  # module.network.aws_subnet.public[0] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.20.1.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block                                = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + region                                         = "us-east-1"
+      + tags                                           = {
+          + "Name" = "nightwatch-dev-public-1"
+          + "Tier" = "public"
+        }
+      + tags_all                                       = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-public-1"
+          + "Project"     = "NightwatchProtocol"
+          + "Tier"        = "public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.network.aws_subnet.public[1] will be created
+  + resource "aws_subnet" "public" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.20.2.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block                                = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = true
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + region                                         = "us-east-1"
+      + tags                                           = {
+          + "Name" = "nightwatch-dev-public-2"
+          + "Tier" = "public"
+        }
+      + tags_all                                       = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-public-2"
+          + "Project"     = "NightwatchProtocol"
+          + "Tier"        = "public"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.network.aws_subnet.redis[0] will be created
+  + resource "aws_subnet" "redis" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1a"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.20.11.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block                                = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + region                                         = "us-east-1"
+      + tags                                           = {
+          + "Name" = "nightwatch-dev-redis-1"
+          + "Tier" = "data"
+        }
+      + tags_all                                       = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-redis-1"
+          + "Project"     = "NightwatchProtocol"
+          + "Tier"        = "data"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.network.aws_subnet.redis[1] will be created
+  + resource "aws_subnet" "redis" {
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "us-east-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.20.12.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block                                = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + region                                         = "us-east-1"
+      + tags                                           = {
+          + "Name" = "nightwatch-dev-redis-2"
+          + "Tier" = "data"
+        }
+      + tags_all                                       = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-redis-2"
+          + "Project"     = "NightwatchProtocol"
+          + "Tier"        = "data"
+        }
+      + vpc_id                                         = (known after apply)
+    }
+
+  # module.network.aws_vpc.main will be created
+  + resource "aws_vpc" "main" {
+      + arn                                  = (known after apply)
+      + cidr_block                           = "10.20.0.0/16"
+      + default_network_acl_id               = (known after apply)
+      + default_route_table_id               = (known after apply)
+      + default_security_group_id            = (known after apply)
+      + dhcp_options_id                      = (known after apply)
+      + enable_dns_hostnames                 = true
+      + enable_dns_support                   = true
+      + enable_network_address_usage_metrics = (known after apply)
+      + id                                   = (known after apply)
+      + instance_tenancy                     = "default"
+      + ipv6_association_id                  = (known after apply)
+      + ipv6_cidr_block                      = (known after apply)
+      + ipv6_cidr_block_network_border_group = (known after apply)
+      + main_route_table_id                  = (known after apply)
+      + owner_id                             = (known after apply)
+      + region                               = "us-east-1"
+      + tags                                 = {
+          + "Name" = "nightwatch-dev-vpc"
+        }
+      + tags_all                             = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-vpc"
+          + "Project"     = "NightwatchProtocol"
+        }
+    }
+
+  # module.realtime_gateway.aws_autoscaling_group.service will be created
+  + resource "aws_autoscaling_group" "service" {
+      + arn                              = (known after apply)
+      + availability_zones               = (known after apply)
+      + default_cooldown                 = (known after apply)
+      + desired_capacity                 = 1
+      + force_delete                     = false
+      + force_delete_warm_pool           = false
+      + health_check_grace_period        = 300
+      + health_check_type                = "ELB"
+      + id                               = (known after apply)
+      + ignore_failed_scaling_activities = false
+      + load_balancers                   = (known after apply)
+      + max_size                         = 2
+      + metrics_granularity              = "1Minute"
+      + min_size                         = 1
+      + name                             = (known after apply)
+      + name_prefix                      = "nightwatch-dev-realtime-gateway-"
+      + predicted_capacity               = (known after apply)
+      + protect_from_scale_in            = false
+      + region                           = "us-east-1"
+      + service_linked_role_arn          = (known after apply)
+      + target_group_arns                = (known after apply)
+      + vpc_zone_identifier              = (known after apply)
+      + wait_for_capacity_timeout        = "10m"
+      + warm_pool_size                   = (known after apply)
+
+      + availability_zone_distribution (known after apply)
+
+      + capacity_reservation_specification (known after apply)
+
+      + instance_refresh {
+          + strategy = "Rolling"
+
+          + preferences {
+              + instance_warmup              = "180"
+              + max_healthy_percentage       = 100
+              + min_healthy_percentage       = 50
+              + scale_in_protected_instances = "Ignore"
+              + skip_matching                = false
+              + standby_instances            = "Ignore"
+            }
+        }
+
+      + launch_template {
+          + id      = (known after apply)
+          + name    = (known after apply)
+          + version = "$Latest"
+        }
+
+      + mixed_instances_policy (known after apply)
+
+      + tag {
+          + key                 = "Name"
+          + propagate_at_launch = true
+          + value               = "nightwatch-dev-realtime-gateway"
+        }
+
+      + traffic_source (known after apply)
+    }
+
+  # module.realtime_gateway.aws_autoscaling_policy.cpu[0] will be created
+  + resource "aws_autoscaling_policy" "cpu" {
+      + arn                     = (known after apply)
+      + autoscaling_group_name  = (known after apply)
+      + enabled                 = true
+      + id                      = (known after apply)
+      + metric_aggregation_type = (known after apply)
+      + name                    = "nightwatch-dev-realtime-gateway-cpu"
+      + policy_type             = "TargetTrackingScaling"
+      + region                  = "us-east-1"
+
+      + target_tracking_configuration {
+          + disable_scale_in = false
+          + target_value     = 50
+
+          + predefined_metric_specification {
+              + predefined_metric_type = "ASGAverageCPUUtilization"
+            }
+        }
+    }
+
+  # module.realtime_gateway.aws_launch_template.service will be created
+  + resource "aws_launch_template" "service" {
+      + arn                    = (known after apply)
+      + default_version        = (known after apply)
+      + id                     = (known after apply)
+      + image_id               = (sensitive value)
+      + instance_type          = "t3.micro"
+      + latest_version         = (known after apply)
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-realtime-gateway-"
+      + region                 = "us-east-1"
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + user_data              = (sensitive value)
+      + vpc_security_group_ids = (known after apply)
+
+      + block_device_mappings {
+          + device_name = "/dev/xvda"
+
+          + ebs {
+              + delete_on_termination      = "true"
+              + encrypted                  = "true"
+              + iops                       = (known after apply)
+              + throughput                 = (known after apply)
+              + volume_initialization_rate = (known after apply)
+              + volume_size                = 12
+              + volume_type                = "gp3"
+            }
+        }
+
+      + iam_instance_profile {
+          + name = "LabInstanceProfile"
+        }
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_protocol_ipv6          = (known after apply)
+          + http_put_response_hop_limit = (known after apply)
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = (known after apply)
+        }
+
+      + tag_specifications {
+          + resource_type = "instance"
+          + tags          = {
+              + "Name"    = "nightwatch-dev-realtime-gateway"
+              + "Service" = "realtime-gateway"
+            }
+        }
+    }
+
+  # module.realtime_gateway.aws_security_group.service will be created
+  + resource "aws_security_group" "service" {
+      + arn                    = (known after apply)
+      + description            = "Security group for realtime-gateway instances."
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow outbound traffic"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "10.20.0.0/16",
+                ]
+              + description      = "Internal HTTP between Nightwatch services"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8080
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "HTTP from Application Load Balancer"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8080
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-realtime-gateway-"
+      + owner_id               = (known after apply)
+      + region                 = "us-east-1"
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "nightwatch-dev-realtime-gateway-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-realtime-gateway-sg"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.redis.aws_elasticache_cluster.redis will be created
+  + resource "aws_elasticache_cluster" "redis" {
+      + apply_immediately          = true
+      + arn                        = (known after apply)
+      + auto_minor_version_upgrade = "true"
+      + availability_zone          = (known after apply)
+      + az_mode                    = (known after apply)
+      + cache_nodes                = (known after apply)
+      + cluster_address            = (known after apply)
+      + cluster_id                 = "nightwatch-dev-redis"
+      + configuration_endpoint     = (known after apply)
+      + engine                     = "redis"
+      + engine_version             = (known after apply)
+      + engine_version_actual      = (known after apply)
+      + id                         = (known after apply)
+      + ip_discovery               = (known after apply)
+      + maintenance_window         = (known after apply)
+      + network_type               = (known after apply)
+      + node_type                  = "cache.t4g.micro"
+      + num_cache_nodes            = 1
+      + parameter_group_name       = "default.redis7"
+      + port                       = 6379
+      + preferred_outpost_arn      = (known after apply)
+      + region                     = "us-east-1"
+      + replication_group_id       = (known after apply)
+      + security_group_ids         = (known after apply)
+      + snapshot_retention_limit   = 0
+      + snapshot_window            = (known after apply)
+      + subnet_group_name          = "nightwatch-dev-redis-subnets"
+      + tags                       = {
+          + "Name" = "nightwatch-dev-redis"
+        }
+      + tags_all                   = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-redis"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + transit_encryption_enabled = (known after apply)
+    }
+
+  # module.redis.aws_elasticache_subnet_group.redis will be created
+  + resource "aws_elasticache_subnet_group" "redis" {
+      + arn         = (known after apply)
+      + description = "Subnets used by Nightwatch Redis."
+      + id          = (known after apply)
+      + name        = "nightwatch-dev-redis-subnets"
+      + region      = "us-east-1"
+      + subnet_ids  = (known after apply)
+      + tags        = {
+          + "Name" = "nightwatch-dev-redis-subnets"
+        }
+      + tags_all    = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-redis-subnets"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id      = (known after apply)
+    }
+
+  # module.redis.aws_security_group.redis will be created
+  + resource "aws_security_group" "redis" {
+      + arn                    = (known after apply)
+      + description            = "Allows Redis traffic from inside the project VPC."
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Allow outbound traffic"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "10.20.0.0/16",
+                ]
+              + description      = "Redis from project VPC"
+              + from_port        = 6379
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 6379
+            },
+        ]
+      + name                   = (known after apply)
+      + name_prefix            = "nightwatch-dev-redis-"
+      + owner_id               = (known after apply)
+      + region                 = "us-east-1"
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "nightwatch-dev-redis-sg"
+        }
+      + tags_all               = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-redis-sg"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + vpc_id                 = (known after apply)
+    }
+
+  # module.web_client.data.aws_iam_policy_document.public_read will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "public_read" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "s3:GetObject",
+            ]
+          + effect    = "Allow"
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "PublicReadGetObject"
+
+          + principals {
+              + identifiers = [
+                  + "*",
+                ]
+              + type        = "*"
+            }
+        }
+    }
+
+  # module.web_client.aws_s3_bucket.web will be created
+  + resource "aws_s3_bucket" "web" {
+      + acceleration_status         = (known after apply)
+      + acl                         = (known after apply)
+      + arn                         = (known after apply)
+      + bucket                      = (known after apply)
+      + bucket_domain_name          = (known after apply)
+      + bucket_namespace            = (known after apply)
+      + bucket_prefix               = (known after apply)
+      + bucket_region               = (known after apply)
+      + bucket_regional_domain_name = (known after apply)
+      + force_destroy               = true
+      + hosted_zone_id              = (known after apply)
+      + id                          = (known after apply)
+      + object_lock_enabled         = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = "us-east-1"
+      + request_payer               = (known after apply)
+      + tags                        = {
+          + "Name" = "nightwatch-dev-web"
+        }
+      + tags_all                    = {
+          + "Environment" = "dev"
+          + "ManagedBy"   = "Terraform"
+          + "Name"        = "nightwatch-dev-web"
+          + "Project"     = "NightwatchProtocol"
+        }
+      + website_domain              = (known after apply)
+      + website_endpoint            = (known after apply)
+
+      + cors_rule (known after apply)
+
+      + grant (known after apply)
+
+      + lifecycle_rule (known after apply)
+
+      + logging (known after apply)
+
+      + object_lock_configuration (known after apply)
+
+      + replication_configuration (known after apply)
+
+      + server_side_encryption_configuration (known after apply)
+
+      + versioning (known after apply)
+
+      + website (known after apply)
+    }
+
+  # module.web_client.aws_s3_bucket_ownership_controls.web will be created
+  + resource "aws_s3_bucket_ownership_controls" "web" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+      + region = "us-east-1"
+
+      + rule {
+          + object_ownership = "BucketOwnerEnforced"
+        }
+    }
+
+  # module.web_client.aws_s3_bucket_policy.public_read will be created
+  + resource "aws_s3_bucket_policy" "public_read" {
+      + bucket = (known after apply)
+      + id     = (known after apply)
+      + policy = (known after apply)
+      + region = "us-east-1"
+    }
+
+  # module.web_client.aws_s3_bucket_public_access_block.web will be created
+  + resource "aws_s3_bucket_public_access_block" "web" {
+      + block_public_acls       = true
+      + block_public_policy     = false
+      + bucket                  = (known after apply)
+      + id                      = (known after apply)
+      + ignore_public_acls      = true
+      + region                  = "us-east-1"
+      + restrict_public_buckets = false
+    }
+
+  # module.web_client.aws_s3_bucket_website_configuration.web will be created
+  + resource "aws_s3_bucket_website_configuration" "web" {
+      + bucket           = (known after apply)
+      + id               = (known after apply)
+      + region           = "us-east-1"
+      + routing_rules    = (known after apply)
+      + website_domain   = (known after apply)
+      + website_endpoint = (known after apply)
+
+      + error_document {
+          + key = "index.html"
+        }
+
+      + index_document {
+          + suffix = "index.html"
+        }
+
+      + routing_rule (known after apply)
+    }
+
+  # module.web_client.random_string.bucket_suffix will be created
+  + resource "random_string" "bucket_suffix" {
+      + id          = (known after apply)
+      + length      = 8
+      + lower       = true
+      + min_lower   = 0
+      + min_numeric = 0
+      + min_special = 0
+      + min_upper   = 0
+      + number      = true
+      + numeric     = true
+      + result      = (known after apply)
+      + special     = false
+      + upper       = false
+    }
+
+Plan: 46 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + alb_dns_name            = (known after apply)
+  + autoscaling_groups      = {
+      + auth        = (known after apply)
+      + game        = (known after apply)
+      + gateway     = (known after apply)
+      + matchmaking = (known after apply)
+    }
+  + backend_base_url        = (known after apply)
+  + dynamodb_users_table    = "NP-Users"
+  + public_subnet_ids       = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + redis_connection_string = (known after apply)
+  + redis_endpoint          = (known after apply)
+  + redis_subnet_ids        = [
+      + (known after apply),
+      + (known after apply),
+    ]
+  + vpc_id                  = (known after apply)
+  + web_client_bucket       = (known after apply)
+  + web_client_url          = (known after apply)
+  + websocket_url           = (known after apply)

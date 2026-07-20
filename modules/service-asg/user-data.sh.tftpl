@@ -9,21 +9,24 @@ dnf install -y docker awscli
 systemctl enable docker
 systemctl start docker
 
-REGION="us-east-1"
+REGION="${aws_region}"
+SERVICE_NAME="${service_name}"
+IMAGE_URI="${image_uri}"
+LOG_GROUP="${cloudwatch_log_group_name}"
 
-TOKEN=$(curl -X PUT \
+TOKEN=$(curl -s -X PUT \
   -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" \
   http://169.254.169.254/latest/api/token)
 
-INSTANCE_ID=$(curl \
+INSTANCE_ID=$(curl -s \
   -H "X-aws-ec2-metadata-token: $TOKEN" \
   http://169.254.169.254/latest/meta-data/instance-id)
 
-PRIVATE_IP=$(curl \
+PRIVATE_IP=$(curl -s \
   -H "X-aws-ec2-metadata-token: $TOKEN" \
   http://169.254.169.254/latest/meta-data/local-ipv4)
 
-REGISTRY=$(echo "${image_uri}" | cut -d/ -f1)
+REGISTRY=$(echo "$IMAGE_URI" | cut -d/ -f1)
 
 aws ecr get-login-password \
   --region "$REGION" \
@@ -34,12 +37,15 @@ aws ecr get-login-password \
 cat > /etc/nightwatch.env <<'ENVFILE'
 ASPNETCORE_URLS=http://+:8080
 ASPNETCORE_ENVIRONMENT=Production
-AWS_REGION=us-east-1
-AWS_DEFAULT_REGION=us-east-1
 AWS_ACCOUNT_ID_ENDPOINT_MODE=disabled
 %{ for key, value in environment_variables ~}
 ${key}=${value}
 %{ endfor ~}
+ENVFILE
+
+cat >> /etc/nightwatch.env <<ENVFILE
+AWS_REGION=$REGION
+AWS_DEFAULT_REGION=$REGION
 ENVFILE
 
 %{ if enable_game_instance_identity ~}
@@ -55,13 +61,18 @@ Redis__ConsumerId=gateway-$INSTANCE_ID
 ENVFILE
 %{ endif ~}
 
-docker pull "${image_uri}"
+docker pull "$IMAGE_URI"
 
-docker rm -f "${service_name}" || true
+docker rm -f "$SERVICE_NAME" || true
 
 docker run -d \
-  --name "${service_name}" \
+  --name "$SERVICE_NAME" \
   --restart unless-stopped \
   --env-file /etc/nightwatch.env \
+  --log-driver awslogs \
+  --log-opt awslogs-region="$REGION" \
+  --log-opt awslogs-group="$LOG_GROUP" \
+  --log-opt awslogs-stream="$SERVICE_NAME-$INSTANCE_ID" \
+  --log-opt awslogs-create-group=false \
   -p 8080:8080 \
-  "${image_uri}"
+  "$IMAGE_URI"

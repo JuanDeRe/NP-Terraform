@@ -60,6 +60,14 @@ module "auth_service" {
   instance_type             = var.instance_type
   iam_instance_profile_name = var.iam_instance_profile_name
 
+  aws_region = var.aws_region
+
+  cloudwatch_log_group_name = (
+    module.observability.log_group_names[
+      "auth-service"
+    ]
+  )
+
   min_size         = 1
   desired_capacity = 1
   max_size         = 2
@@ -104,6 +112,16 @@ module "game_service" {
   max_size         = 3
 
   enable_game_instance_identity = true
+  disable_scale_in              = true
+
+  aws_region = var.aws_region
+
+  cloudwatch_log_group_name = (
+    module.observability.log_group_names[
+      "game-service"
+    ]
+  )
+
 
   environment_variables = {
     Redis__ConnectionString = module.redis.connection_string
@@ -132,6 +150,14 @@ module "matchmaking_service" {
   target_group_arn      = module.load_balancer.target_group_arns.matchmaking
 
   image_uri = "${module.ecr.repository_urls["matchmaking-service"]}:latest"
+
+  aws_region = var.aws_region
+
+  cloudwatch_log_group_name = (
+    module.observability.log_group_names[
+      "matchmaking-service"
+    ]
+  )
 
   instance_type             = var.instance_type
   iam_instance_profile_name = var.iam_instance_profile_name
@@ -165,6 +191,14 @@ module "realtime_gateway" {
   instance_type             = var.instance_type
   iam_instance_profile_name = var.iam_instance_profile_name
 
+  aws_region = var.aws_region
+
+  cloudwatch_log_group_name = (
+    module.observability.log_group_names[
+      "realtime-gateway"
+    ]
+  )
+
   min_size         = 1
   desired_capacity = 1
   max_size         = 2
@@ -180,4 +214,13 @@ module "realtime_gateway" {
     Jwt__Audience = "NightwatchClients"
   }
 
+}
+
+module "observability" {
+  source = "./modules/observability"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  log_retention_days = 7
 }
