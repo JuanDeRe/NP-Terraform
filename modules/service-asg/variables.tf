@@ -95,3 +95,13 @@ variable "ami_id" {
   description = "AMI used by service instances."
   type        = string
 }
+variable "game_capacity_target" {
+  description = "Target GameService match capacity utilization."
+  type        = number
+  default     = 60
+}
+variable "cpu_disable_scale_in" {
+  description = "Disables scale-in for the CPU policy."
+  type        = bool
+  default     = false
+}

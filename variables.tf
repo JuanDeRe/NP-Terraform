@@ -55,3 +55,17 @@ variable "game_service_asg_name" {
   description = "Existing GameService Auto Scaling Group name."
   type        = string
 }
+variable "game_capacity_target" {
+  description = "Target match capacity utilization for GameService."
+  type        = number
+  default     = 60
+
+  validation {
+    condition = (
+      var.game_capacity_target > 0 &&
+      var.game_capacity_target < 100
+    )
+
+    error_message = "game_capacity_target must be greater than 0 and lower than 100."
+  }
+}

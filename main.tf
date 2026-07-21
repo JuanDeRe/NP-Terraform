@@ -113,9 +113,11 @@ module "game_service" {
   instance_type             = var.instance_type
   iam_instance_profile_name = var.iam_instance_profile_name
 
-  min_size         = 1
-  desired_capacity = 1
+  min_size         = 2
+  desired_capacity = 2
   max_size         = 3
+
+  cpu_disable_scale_in = true
 
   enable_game_instance_identity = true
   disable_scale_in              = true
@@ -138,6 +140,8 @@ module "game_service" {
     GameService__MaxMatches = tostring(var.game_service_max_matches)
 
     GameService__HeartbeatIntervalSeconds = "5"
+
+    GameSettings__MatchDurationSeconds = "420"
 
     Metrics__Enabled = "true"
 
@@ -240,6 +244,49 @@ module "realtime_gateway" {
     Metrics__PublishIntervalSeconds = "60"
   }
 
+}
+resource "aws_autoscaling_policy" "game_match_capacity" {
+  name = (
+    "${var.project_name}-${var.environment}-game-match-capacity"
+  )
+
+  autoscaling_group_name = (
+    module.game_service.autoscaling_group_name
+  )
+
+  policy_type = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    target_value     = var.game_capacity_target
+    disable_scale_in = false
+
+    customized_metric_specification {
+      metrics {
+        id          = "match_capacity"
+        return_data = true
+
+        metric_stat {
+          metric {
+            namespace   = "NightwatchProtocol"
+            metric_name = "MatchCapacityUtilization"
+
+            dimensions {
+              name  = "Environment"
+              value = var.environment
+            }
+
+            dimensions {
+              name  = "Service"
+              value = "game-service"
+            }
+          }
+
+          stat   = "Average"
+          period = 60
+        }
+      }
+    }
+  }
 }
 
 module "observability" {
