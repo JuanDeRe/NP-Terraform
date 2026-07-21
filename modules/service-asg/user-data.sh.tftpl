@@ -50,7 +50,7 @@ ENVFILE
 
 %{ if enable_game_instance_identity ~}
 cat >> /etc/nightwatch.env <<ENVFILE
-GameService__InstanceId=game-service-$INSTANCE_ID
+GameService__InstanceId=$INSTANCE_ID
 GameService__InternalUrl=http://$PRIVATE_IP:8080
 ENVFILE
 %{ endif ~}

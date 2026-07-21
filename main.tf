@@ -133,6 +133,8 @@ module "game_service" {
     Redis__ConnectionString = (module.redis.connection_string)
     Redis__InstanceName     = "nightwatch:"
 
+    GameService__AutoScalingGroupName = (var.game_service_asg_name)
+
     GameService__MaxMatches = tostring(var.game_service_max_matches)
 
     GameService__HeartbeatIntervalSeconds = "5"

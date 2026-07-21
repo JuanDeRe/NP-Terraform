@@ -50,3 +50,8 @@ variable "service_ami_id" {
   description = "Pinned Amazon Linux AMI used by Nightwatch service instances."
   type        = string
 }
+
+variable "game_service_asg_name" {
+  description = "Existing GameService Auto Scaling Group name."
+  type        = string
+}
