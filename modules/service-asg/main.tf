@@ -1,7 +1,3 @@
-data "aws_ssm_parameter" "amazon_linux" {
-  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
-}
-
 resource "aws_security_group" "service" {
   name_prefix = "${var.project_name}-${var.environment}-${var.service_name}-"
 
@@ -73,7 +69,7 @@ resource "aws_security_group" "service" {
 resource "aws_launch_template" "service" {
   name_prefix = "${var.project_name}-${var.environment}-${var.service_name}-"
 
-  image_id      = data.aws_ssm_parameter.amazon_linux.value
+  image_id      = var.ami_id
   instance_type = var.instance_type
 
   iam_instance_profile {
@@ -159,6 +155,17 @@ resource "aws_autoscaling_group" "service" {
       instance_warmup        = 180
     }
   }
+  enabled_metrics = [
+    "GroupMinSize",
+    "GroupMaxSize",
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupPendingInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances"
+  ]
+
+  metrics_granularity = "1Minute"
 
   tag {
     key = "Name"

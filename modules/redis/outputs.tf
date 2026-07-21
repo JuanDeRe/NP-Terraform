@@ -22,3 +22,8 @@ output "security_group_id" {
   description = "Redis security group identifier."
   value       = aws_security_group.redis.id
 }
+
+output "cluster_id" {
+  description = "ElastiCache cluster identifier."
+  value       = aws_elasticache_cluster.redis.cluster_id
+}

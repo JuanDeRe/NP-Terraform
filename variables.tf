@@ -45,3 +45,8 @@ variable "iam_instance_profile_name" {
   type        = string
   default     = "LabInstanceProfile"
 }
+
+variable "service_ami_id" {
+  description = "Pinned Amazon Linux AMI used by Nightwatch service instances."
+  type        = string
+}

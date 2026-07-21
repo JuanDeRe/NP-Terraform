@@ -68,3 +68,12 @@ output "cloudwatch_log_groups" {
   description = "CloudWatch Log Groups for Nightwatch services."
   value       = module.observability.log_group_names
 }
+output "cloudwatch_dashboard_name" {
+  description = "Nightwatch CloudWatch dashboard."
+  value       = module.monitoring.dashboard_name
+}
+
+output "cloudwatch_alarm_names" {
+  description = "Nightwatch CloudWatch alarms."
+  value       = module.monitoring.alarm_names
+}

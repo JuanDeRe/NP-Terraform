@@ -95,3 +95,8 @@ variable "cloudwatch_log_group_name" {
   description = "CloudWatch Log Group used by the Docker awslogs driver."
   type        = string
 }
+
+variable "ami_id" {
+  description = "AMI used by service instances."
+  type        = string
+}

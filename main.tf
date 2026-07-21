@@ -49,6 +49,8 @@ module "auth_service" {
   environment  = var.environment
   service_name = "auth-service"
 
+  ami_id = var.service_ami_id
+
   vpc_id                = module.network.vpc_id
   vpc_cidr_block        = module.network.vpc_cidr_block
   subnet_ids            = module.network.public_subnet_ids
@@ -76,9 +78,13 @@ module "auth_service" {
     DynamoDb__TableName    = module.dynamodb.table_name
     DynamoDb__UseLocalMode = "false"
 
-    Jwt__Key      = var.jwt_key
-    Jwt__Issuer   = "NightwatchAuth"
-    Jwt__Audience = "NightwatchClients"
+    Jwt__Key                        = var.jwt_key
+    Jwt__Issuer                     = "NightwatchAuth"
+    Jwt__Audience                   = "NightwatchClients"
+    Metrics__Enabled                = "true"
+    Metrics__Namespace              = "NightwatchProtocol"
+    Metrics__Environment            = var.environment
+    Metrics__PublishIntervalSeconds = "60"
   }
 }
 
@@ -94,6 +100,8 @@ module "game_service" {
   project_name = var.project_name
   environment  = var.environment
   service_name = "game-service"
+
+  ami_id = var.service_ami_id
 
   vpc_id         = module.network.vpc_id
   vpc_cidr_block = module.network.vpc_cidr_block
@@ -124,14 +132,20 @@ module "game_service" {
 
 
   environment_variables = {
-    Redis__ConnectionString = module.redis.connection_string
+    Redis__ConnectionString = (module.redis.connection_string)
     Redis__InstanceName     = "nightwatch:"
 
-    GameService__MaxMatches = tostring(
-      var.game_service_max_matches
-    )
+    GameService__MaxMatches = tostring(var.game_service_max_matches)
 
     GameService__HeartbeatIntervalSeconds = "5"
+
+    Metrics__Enabled = "true"
+
+    Metrics__Namespace = ("NightwatchProtocol")
+
+    Metrics__Environment = (var.environment)
+
+    Metrics__PublishIntervalSeconds = "60"
   }
 }
 
@@ -141,6 +155,8 @@ module "matchmaking_service" {
   project_name = var.project_name
   environment  = var.environment
   service_name = "matchmaking-service"
+
+  ami_id = var.service_ami_id
 
   vpc_id         = module.network.vpc_id
   vpc_cidr_block = module.network.vpc_cidr_block
@@ -167,8 +183,13 @@ module "matchmaking_service" {
   max_size         = 2
 
   environment_variables = {
-    Redis__ConnectionString = module.redis.connection_string
-    Redis__InstanceName     = "nightwatch:"
+    Redis__ConnectionString         = module.redis.connection_string
+    Redis__InstanceName             = "nightwatch:"
+    Cors__AllowedOrigins__0         = module.web_client.website_url
+    Metrics__Enabled                = "true"
+    Metrics__Namespace              = "NightwatchProtocol"
+    Metrics__Environment            = var.environment
+    Metrics__PublishIntervalSeconds = "60"
   }
 }
 
@@ -179,6 +200,8 @@ module "realtime_gateway" {
   project_name = var.project_name
   environment  = var.environment
   service_name = "realtime-gateway"
+
+  ami_id = var.service_ami_id
 
   vpc_id                = module.network.vpc_id
   vpc_cidr_block        = module.network.vpc_cidr_block
@@ -209,9 +232,13 @@ module "realtime_gateway" {
     Redis__ConnectionString = module.redis.connection_string
     Redis__InstanceName     = "nightwatch:"
 
-    Jwt__Key      = var.jwt_key
-    Jwt__Issuer   = "NightwatchAuth"
-    Jwt__Audience = "NightwatchClients"
+    Jwt__Key                        = var.jwt_key
+    Jwt__Issuer                     = "NightwatchAuth"
+    Jwt__Audience                   = "NightwatchClients"
+    Metrics__Enabled                = "true"
+    Metrics__Namespace              = "NightwatchProtocol"
+    Metrics__Environment            = var.environment
+    Metrics__PublishIntervalSeconds = "60"
   }
 
 }
@@ -223,4 +250,43 @@ module "observability" {
   environment  = var.environment
 
   log_retention_days = 7
+}
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+
+  alb_arn_suffix = (
+    module.load_balancer.alb_arn_suffix
+  )
+
+  target_group_arn_suffixes = (
+    module.load_balancer.target_group_arn_suffixes
+  )
+
+  autoscaling_group_names = {
+    auth = (
+      module.auth_service.autoscaling_group_name
+    )
+
+    matchmaking = (
+      module.matchmaking_service.autoscaling_group_name
+    )
+
+    gateway = (
+      module.realtime_gateway.autoscaling_group_name
+    )
+
+    game = (
+      module.game_service.autoscaling_group_name
+    )
+  }
+
+  redis_cluster_id = module.redis.cluster_id
+
+  dynamodb_table_name = (
+    module.dynamodb.table_name
+  )
 }
