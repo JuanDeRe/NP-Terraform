@@ -1,23 +1,9 @@
 resource "aws_security_group" "redis" {
   name_prefix = "${var.project_name}-${var.environment}-redis-"
+
   description = "Allows Redis traffic from inside the project VPC."
-  vpc_id      = var.vpc_id
 
-  ingress {
-    description = "Redis from project VPC"
-    from_port   = 6379
-    to_port     = 6379
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr_block]
-  }
-
-  egress {
-    description = "Allow outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  vpc_id = var.vpc_id
 
   tags = {
     Name = "${var.project_name}-${var.environment}-redis-sg"
@@ -25,6 +11,20 @@ resource "aws_security_group" "redis" {
 
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+
+resource "aws_vpc_security_group_egress_rule" "redis_all_ipv4" {
+  security_group_id = aws_security_group.redis.id
+
+  description = "Allow outbound IPv4 traffic"
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "-1"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-redis-egress"
   }
 }
 

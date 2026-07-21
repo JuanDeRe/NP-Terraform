@@ -69,11 +69,6 @@ variable "enable_gateway_instance_identity" {
   default = false
 }
 
-variable "vpc_cidr_block" {
-  description = "CIDR block used for internal service communication."
-  type        = string
-}
-
 variable "additional_alb_ports" {
   description = "Additional container ports accepted from the ALB."
   type        = set(number)

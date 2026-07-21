@@ -5,64 +5,63 @@ resource "aws_security_group" "service" {
 
   vpc_id = var.vpc_id
 
-  ingress {
-    description = "HTTP from Application Load Balancer"
-
-    from_port = 8080
-    to_port   = 8080
-    protocol  = "tcp"
-
-    security_groups = [
-      var.alb_security_group_id
-    ]
-  }
-
-  ingress {
-    description = "Internal HTTP between Nightwatch services"
-
-    from_port = 8080
-    to_port   = 8080
-    protocol  = "tcp"
-
-    cidr_blocks = [
-      var.vpc_cidr_block
-    ]
-  }
-
-  dynamic "ingress" {
-    for_each = var.additional_alb_ports
-
-    content {
-      description = "Additional application port from ALB"
-
-      from_port = ingress.value
-      to_port   = ingress.value
-      protocol  = "tcp"
-
-      security_groups = [
-        var.alb_security_group_id
-      ]
-    }
-  }
-
-  egress {
-    description = "Allow outbound traffic"
-
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-  }
-
   lifecycle {
     create_before_destroy = true
   }
 
   tags = {
     Name = "${var.project_name}-${var.environment}-${var.service_name}-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb_http" {
+  security_group_id = aws_security_group.service.id
+
+  referenced_security_group_id = (
+    var.alb_security_group_id
+  )
+
+  description = "HTTP from Application Load Balancer"
+
+  from_port   = 8080
+  to_port     = 8080
+  ip_protocol = "tcp"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-${var.service_name}-alb-http"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "additional_alb_ports" {
+  for_each = var.additional_alb_ports
+
+  security_group_id = aws_security_group.service.id
+
+  referenced_security_group_id = (
+    var.alb_security_group_id
+  )
+
+  description = "Additional application port from ALB"
+
+  from_port   = each.value
+  to_port     = each.value
+  ip_protocol = "tcp"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-${var.service_name}-alb-${each.value}"
+  }
+}
+
+resource "aws_vpc_security_group_egress_rule" "all_ipv4" {
+  security_group_id = aws_security_group.service.id
+
+  description = "Allow outbound IPv4 traffic"
+
+  cidr_ipv4   = "0.0.0.0/0"
+  ip_protocol = "-1"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-${var.service_name}-egress"
   }
 }
 

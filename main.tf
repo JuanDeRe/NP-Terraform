@@ -25,9 +25,8 @@ module "redis" {
   project_name = var.project_name
   environment  = var.environment
 
-  vpc_id         = module.network.vpc_id
-  vpc_cidr_block = module.network.vpc_cidr_block
-  subnet_ids     = module.network.redis_subnet_ids
+  vpc_id     = module.network.vpc_id
+  subnet_ids = module.network.redis_subnet_ids
 
   node_type = var.redis_node_type
 }
@@ -52,7 +51,6 @@ module "auth_service" {
   ami_id = var.service_ami_id
 
   vpc_id                = module.network.vpc_id
-  vpc_cidr_block        = module.network.vpc_cidr_block
   subnet_ids            = module.network.public_subnet_ids
   alb_security_group_id = module.load_balancer.security_group_id
   target_group_arn      = module.load_balancer.target_group_arns.auth
@@ -75,8 +73,9 @@ module "auth_service" {
   max_size         = 2
 
   environment_variables = {
-    DynamoDb__TableName    = module.dynamodb.table_name
-    DynamoDb__UseLocalMode = "false"
+    DynamoDb__TableName     = module.dynamodb.table_name
+    DynamoDb__UseLocalMode  = "false"
+    Cors__AllowedOrigins__0 = (module.web_client.website_url)
 
     Jwt__Key                        = var.jwt_key
     Jwt__Issuer                     = "NightwatchAuth"
@@ -103,8 +102,7 @@ module "game_service" {
 
   ami_id = var.service_ami_id
 
-  vpc_id         = module.network.vpc_id
-  vpc_cidr_block = module.network.vpc_cidr_block
+  vpc_id = module.network.vpc_id
 
   subnet_ids            = module.network.public_subnet_ids
   alb_security_group_id = module.load_balancer.security_group_id
@@ -158,8 +156,7 @@ module "matchmaking_service" {
 
   ami_id = var.service_ami_id
 
-  vpc_id         = module.network.vpc_id
-  vpc_cidr_block = module.network.vpc_cidr_block
+  vpc_id = module.network.vpc_id
 
   subnet_ids            = module.network.public_subnet_ids
   alb_security_group_id = module.load_balancer.security_group_id
@@ -204,7 +201,6 @@ module "realtime_gateway" {
   ami_id = var.service_ami_id
 
   vpc_id                = module.network.vpc_id
-  vpc_cidr_block        = module.network.vpc_cidr_block
   subnet_ids            = module.network.public_subnet_ids
   alb_security_group_id = module.load_balancer.security_group_id
   target_group_arn      = module.load_balancer.target_group_arns.gateway
@@ -231,6 +227,7 @@ module "realtime_gateway" {
   environment_variables = {
     Redis__ConnectionString = module.redis.connection_string
     Redis__InstanceName     = "nightwatch:"
+    Cors__AllowedOrigins__0 = (module.web_client.website_url)
 
     Jwt__Key                        = var.jwt_key
     Jwt__Issuer                     = "NightwatchAuth"
